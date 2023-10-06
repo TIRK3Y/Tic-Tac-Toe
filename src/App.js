@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { calculateWinner } from './Game';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:5000'); // Replace with your backend server URL
 
 const App = () => {
   const initialBoard = Array(9).fill(null);
@@ -11,7 +14,6 @@ const App = () => {
   const [winner, setWinner] = useState(null);
   const [movesToWin, setMovesToWin] = useState(null);
 
-  // Load user and high scores from local storage on app start
   useEffect(() => {
     const savedPlayer = localStorage.getItem('ticTacToePlayer');
     const savedScores = JSON.parse(localStorage.getItem('ticTacToeHighScores'));
@@ -26,14 +28,22 @@ const App = () => {
     if (savedScores) setHighScores(savedScores);
   }, []);
 
-  // Save player name and high scores to local storage when they change
   useEffect(() => {
-    localStorage.setItem('ticTacToePlayer', player);
-    localStorage.setItem('ticTacToeHighScores', JSON.stringify(highScores));
-  }, [player, highScores]);
+    socket.on('gameStateUpdate', (updatedGameState) => {
+      setBoard(updatedGameState.grid);
+      setXIsNext(updatedGameState.currentPlayer === 'X');
+      setWinner(calculateWinner(updatedGameState.grid));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleClick = (index) => {
     const squares = [...board];
+    const row = Math.floor(index / 3);
+    const col = index % 3;
 
     if (calculateWinner(squares) || squares[index]) return;
 
@@ -51,12 +61,14 @@ const App = () => {
     } else {
       setXIsNext(!xIsNext);
     }
+
+    socket.emit('gameStateUpdate', { roomId: 'game123', gameState: { row, col, player } });
   };
 
   const updateHighScores = (player, moves) => {
     const updatedScores = [...highScores, { player, moves }];
     updatedScores.sort((a, b) => a.moves - b.moves);
-    setHighScores(updatedScores.slice(0, 5)); // Keep only the top 5 scores
+    setHighScores(updatedScores.slice(0, 5));
   };
 
   const renderSquare = (index) => {
