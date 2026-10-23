@@ -1,70 +1,96 @@
-# Getting Started with Create React App
+# Tic Tac Toe
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A Tic Tac Toe game built with React. Two players take turns as X and O on the same device, the app detects the winner, and it tracks how many moves the winning game took along with a top-five list of fastest wins for the session. The repository also contains an in-progress Node.js/Express backend intended to add MongoDB persistence and real-time play over Socket.io.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- 3x3 board with alternating X and O turns
+- Winner detection across all rows, columns, and diagonals
+- Player name prompt on first load, with a "Change Player" button
+- "Moves to win" counter and a top-five fastest-wins list for the current session
+- Reset button to start a new game
+- Socket.io client that emits each move to the backend and listens for `gameStateUpdate` events
 
-### `npm start`
+## Tech stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Frontend**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Package | Version |
+|---------|---------|
+| React / React DOM | ^18.2.0 |
+| react-scripts (Create React App) | 5.0.1 |
+| socket.io-client | ^4.7.2 |
 
-### `npm test`
+**Backend (in progress)**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Package | Version |
+|---------|---------|
+| Express | ^4.18.2 |
+| Mongoose | ^7.5.3 |
+| cors | ^2.8.5 |
+| socket.io | ^4.7.2 (declared in the root `package.json`) |
 
-### `npm run build`
+## Getting started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Node.js and npm
+- MongoDB running locally on `mongodb://localhost:27017` (backend only)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Frontend
 
-### `npm run eject`
+```bash
+npm install
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+The app opens at `http://localhost:3000`. It is fully playable without the backend; the Socket.io client will simply fail to connect.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+To create a production build:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm run build
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Backend
 
-## Learn More
+```bash
+cd backend
+npm install
+node index.js
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The server is configured to listen on port 5000, or on the port given by the `PORT` environment variable.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Usage
 
-### Code Splitting
+- Click an empty square to place the current player's mark.
+- The status panel shows the next player or the winner.
+- Use "Reset" to clear the board and "Change Player" to set a new name.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Project structure
 
-### Analyzing the Bundle Size
+```
+.
+├── src/
+│   ├── App.js          # Game UI, state, scoring, Socket.io client
+│   ├── Game.js         # calculateWinner and square rendering helpers
+│   ├── GameBoard.js    # Board component (not currently used by App)
+│   └── App.css
+├── public/
+└── backend/
+    ├── index.js        # Express + Socket.io server, MongoDB connection
+    ├── routes/games.js # REST endpoints to save and fetch a game state
+    └── models/         # Intended for the GameState model
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Notes and limitations
 
-### Making a Progressive Web App
+- The backend is not yet runnable as committed: `index.js` requires `./routes/game` while the file is `routes/games.js`, and the routes require `../models/gameState`, but no Mongoose model is defined (`models/gamesStates.js` contains route code).
+- The client emits `{ row, col, player }` but expects `gameStateUpdate` payloads with a `grid` field, so real-time sync is not functional yet.
+- High scores are read from `localStorage` on load but are not written back, so they last only for the current session.
+- `src/App.test.js` is the unmodified Create React App placeholder test and does not match the current UI.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## License
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+No license has been specified for this project.
